@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PowerShell Network Configuration Tool - College of DuPage</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .header-title {
+            color: #2d3748;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header-subtitle {
+            color: #4a5568;
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .header-author {
+            color: #718096;
+            font-size: 16px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .card-title {
+            color: #2d3748;
+            font-size: 22px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #4a5568;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        input.error {
+            border-color: #f56565;
+        }
+
+        .error-message {
+            color: #f56565;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .output-section {
+            grid-column: 1 / -1;
+        }
+
+        .code-output {
+            background: #1a202c;
+            color: #68d391;
+            padding: 20px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .output-wrapper {
+            position: relative;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            background: #4a5568;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .copy-btn:hover {
+            background: #2d3748;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="header-title">College of DuPage</h1>
+            <h2 class="header-subtitle">CIT Department - Network Configuration Tool</h2>
+            <p class="header-author">Developed by Tony Chen</p>
+        </header>
+
+        <div class="main-content">
+            <div class="card">
+                <h3 class="card-title">System Configuration</h3>
+                <div class="form-group">
+                    <label for="computerName">Computer Name</label>
+                    <input type="text" id="computerName" placeholder="e.g., WORKSTATION-01">
+                    <span class="error-message" id="computerNameError">Please enter a valid computer name (letters, numbers, and hyphens only)</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">Network Configuration</h3>
+                <div class="form-group">
+                    <label for="ipAddress">IPv4 Address</label>
+                    <input type="text" id="ipAddress" placeholder="e.g., 192.168.1.100">
+                    <span class="error-message" id="ipAddressError">Please enter a valid IPv4 address</span>
+                </div>
+                <div class="form-group">
+                    <label for="subnetMask">Subnet Mask</label>
+                    <input type="text" id="subnetMask" placeholder="e.g., 255.255.255.0">
+                    <span class="error-message" id="subnetMaskError">Please enter a valid subnet mask</span>
+                </div>
+                <div class="form-group">
+                    <label for="defaultGateway">Default Gateway</label>
+                    <input type="text" id="defaultGateway" placeholder="e.g., 192.168.1.1">
+                    <span class="error-message" id="defaultGatewayError">Please enter a valid gateway address</span>
+                </div>
+                <div class="form-group">
+                    <label for="dnsServer">DNS Server</label>
+                    <input type="text" id="dnsServer" placeholder="e.g., 8.8.8.8">
+                    <span class="error-message" id="dnsServerError">Please enter a valid DNS address</span>
+                </div>
+            </div>
+
+            <div class="card output-section">
+                <h3 class="card-title">PowerShell Commands</h3>
+                <div class="button-group">
+                    <button class="btn-primary" onclick="generateCommands()">Generate Commands</button>
+                    <button class="btn-danger" onclick="clearAll()">Clear All</button>
+                </div>
+                <div class="output-wrapper" style="margin-top: 20px;">
+                    <button class="copy-btn" onclick="copyToClipboard()" style="display:none;" id="copyBtn">Copy</button>
+                    <div id="commandOutput" class="code-output" style="display:none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Validation functions
+        function validateIPAddress(ip) {
+            const ipRegex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+            return ipRegex.test(ip);
+        }
+
+        function validateComputerName(name) {
+            const nameRegex = /^[a-zA-Z0-9-]{1,15}$/;
+            return nameRegex.test(name);
+        }
+
+        function showError(inputId, show) {
+            const input = document.getElementById(inputId);
+            const error = document.getElementById(inputId + 'Error');
+            if (show) {
+                input.classList.add('error');
+                error.style.display = 'block';
+            } else {
+                input.classList.remove('error');
+                error.style.display = 'none';
+            }
+        }
+
+        function validateInputs() {
+            let isValid = true;
+            
+            const computerName = document.getElementById('computerName').value.trim();
+            if (!computerName || !validateComputerName(computerName)) {
+                showError('computerName', true);
+                isValid = false;
+            } else {
+                showError('computerName', false);
+            }
+
+            const ipAddress = document.getElementById('ipAddress').value.trim();
+            if (!ipAddress || !validateIPAddress(ipAddress)) {
+                showError('ipAddress', true);
+                isValid = false;
+            } else {
+                showError('ipAddress', false);
+            }
+
+            const subnetMask = document.getElementById('subnetMask').value.trim();
+            if (!subnetMask || !validateIPAddress(subnetMask)) {
+                showError('subnetMask', true);
+                isValid = false;
+            } else {
+                showError('subnetMask', false);
+            }
+
+            const defaultGateway = document.getElementById('defaultGateway').value.trim();
+            if (!defaultGateway || !validateIPAddress(defaultGateway)) {
+                showError('defaultGateway', true);
+                isValid = false;
+            } else {
+                showError('defaultGateway', false);
+            }
+
+            const dnsServer = document.getElementById('dnsServer').value.trim();
+            if (!dnsServer || !validateIPAddress(dnsServer)) {
+                showError('dnsServer', true);
+                isValid = false;
+            } else {
+                showError('dnsServer', false);
+            }
+
+            return isValid;
+        }
+
+        function generateCommands() {
+            if (!validateInputs()) {
+                alert('Please correct the errors in the form before generating commands.');
+                return;
+            }
+
+            const computerName = document.getElementById('computerName').value.trim();
+            const ipAddress = document.getElementById('ipAddress').value.trim();
+            const subnetMask = document.getElementById('subnetMask').value.trim();
+            const defaultGateway = document.getElementById('defaultGateway').value.trim();
+            const dnsServer = document.getElementById('dnsServer').value.trim();
+
+            // Calculate prefix length from subnet mask
+            const prefixLength = calculatePrefixLength(subnetMask);
+
+            const commands = `# PowerShell Network Configuration Script
+# Generated by College of DuPage CIT Department Tool
+# Author: Tony Chen
+# Date: ${new Date().toLocaleString()}
+
+# Run PowerShell as Administrator before executing these commands
+
+# 1. Change Computer Name
+Rename-Computer -NewName "${computerName}" -Force
+
+# Restart the computer to apply the name change
+Restart-Computer -Force
+
+# 2. Configure Network Adapter
+# Get the network adapter name (usually "Ethernet" or "Wi-Fi")
+$adapterName = (Get-NetAdapter | Where-Object {$_.Status -eq "Up"} | Select-Object -First 1).Name
+
+# Remove existing IP configuration
+Remove-NetIPAddress -InterfaceAlias $adapterName -Confirm:$false -ErrorAction SilentlyContinue
+Remove-NetRoute -InterfaceAlias $adapterName -Confirm:$false -ErrorAction SilentlyContinue
+
+# Set new IP configuration
+New-NetIPAddress -InterfaceAlias $adapterName -IPAddress "${ipAddress}" -PrefixLength ${prefixLength} -DefaultGateway "${defaultGateway}"
+
+# Set DNS server
+Set-DnsClientServerAddress -InterfaceAlias $adapterName -ServerAddresses "${dnsServer}"
+
+# 3. Enable Remote Desktop
+Set-ItemProperty -Path 'HKLM:\\System\\CurrentControlSet\\Control\\Terminal Server' -Name "fDenyTSConnections" -Value 0
+Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+
+# 4. Set Time Zone to Central Time
+Set-TimeZone -Name "Central Standard Time"
+
+# 5. Verify Configuration
+Write-Host "Configuration Complete!" -ForegroundColor Green
+Write-Host "Computer Name: ${computerName}"
+Write-Host "IP Address: ${ipAddress}"
+Write-Host "Subnet Mask: ${subnetMask}"
+Write-Host "Default Gateway: ${defaultGateway}"
+Write-Host "DNS Server: ${dnsServer}"
+Write-Host "Time Zone: Central Standard Time"
+Write-Host "Remote Desktop: Enabled"
+Write-Host ""
+Write-Host ""
+Write-Host "IMPORTANT: The script includes an automatic restart after renaming the computer." -ForegroundColor Yellow
+Write-Host "The remaining commands will need to be run after the system restarts." -ForegroundColor Cyan
+Write-Host ""
+Write-Host "To run all commands without intermediate restart:" -ForegroundColor Green
+Write-Host "1. Comment out the 'Restart-Computer -Force' line after Rename-Computer"
+Write-Host "2. Run all commands"
+Write-Host "3. Restart once at the end with: Restart-Computer -Force" -ForegroundColor Green`;
+
+            document.getElementById('commandOutput').textContent = commands;
+            document.getElementById('commandOutput').style.display = 'block';
+            document.getElementById('copyBtn').style.display = 'block';
+        }
+
+        function calculatePrefixLength(subnetMask) {
+            const octets = subnetMask.split('.').map(Number);
+            let prefixLength = 0;
+            for (let octet of octets) {
+                prefixLength += octet.toString(2).replace(/0/g, '').length;
+            }
+            return prefixLength;
+        }
+
+        function copyToClipboard() {
+            const output = document.getElementById('commandOutput').textContent;
+            navigator.clipboard.writeText(output).then(() => {
+                const copyBtn = document.getElementById('copyBtn');
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                }, 2000);
+            });
+        }
+
+        function clearAll() {
+            document.getElementById('computerName').value = '';
+            document.getElementById('ipAddress').value = '';
+            document.getElementById('subnetMask').value = '';
+            document.getElementById('defaultGateway').value = '';
+            document.getElementById('dnsServer').value = '';
+            document.getElementById('commandOutput').style.display = 'none';
+            document.getElementById('copyBtn').style.display = 'none';
+            
+            // Clear any error states
+            const inputs = ['computerName', 'ipAddress', 'subnetMask', 'defaultGateway', 'dnsServer'];
+            inputs.forEach(id => showError(id, false));
+        }
+
+        // Add Enter key support
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generateCommands();
+            }
+        });
+    </script>
+</body>
+</html>
