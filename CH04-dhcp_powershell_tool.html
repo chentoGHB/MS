@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DHCP PowerShell Configuration Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header .institution {
+            font-size: 1.2em;
+            margin-bottom: 5px;
+            opacity: 0.9;
+        }
+
+        .header .department {
+            font-size: 1em;
+            opacity: 0.8;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 40px;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            border-left: 5px solid #2a5298;
+        }
+
+        .output-section {
+            background: #1a1a1a;
+            padding: 30px;
+            border-radius: 10px;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            position: relative;
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #2a5298;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #2a5298;
+            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+        }
+
+        .ip-range-group {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 10px;
+            align-items: end;
+        }
+
+        .separator {
+            text-align: center;
+            font-weight: bold;
+            color: #6c757d;
+            padding-bottom: 12px;
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-weight: 600;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        .powershell-output {
+            background: #000;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            min-height: 400px;
+            border: 2px solid #333;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: #0056b3;
+        }
+
+        .output-section h3 {
+            color: #00ff00;
+            margin-bottom: 15px;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 20px;
+            color: #856404;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .ip-range-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .separator {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="institution">College of DuPage - CIT Department</div>
+            <h1>DHCP PowerShell Configuration Tool</h1>
+            <div class="department">Created by: Tony Chen</div>
+        </div>
+
+        <div class="content">
+            <div class="form-section">
+                <h3 class="section-title">DHCP Configuration Parameters</h3>
+                
+                <div class="form-group">
+                    <label for="scopeName">DHCP Scope Name:</label>
+                    <input type="text" id="scopeName" placeholder="e.g., Main Office Network" required>
+                </div>
+
+                <div class="form-group">
+                    <label>DHCP Scope IP Address Range:</label>
+                    <div class="ip-range-group">
+                        <input type="text" id="startIP" placeholder="192.168.1.100" required>
+                        <div class="separator">to</div>
+                        <input type="text" id="endIP" placeholder="192.168.1.200" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="subnetMask">Subnet Mask:</label>
+                    <select id="subnetMask" required>
+                        <option value="">Select Subnet Mask</option>
+                        <option value="255.255.255.0">/24 - 255.255.255.0</option>
+                        <option value="255.255.254.0">/23 - 255.255.254.0</option>
+                        <option value="255.255.252.0">/22 - 255.255.252.0</option>
+                        <option value="255.255.248.0">/21 - 255.255.248.0</option>
+                        <option value="255.255.240.0">/20 - 255.255.240.0</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>DHCP Scope Exclusion Range:</label>
+                    <div class="ip-range-group">
+                        <input type="text" id="exclusionStart" placeholder="192.168.1.1">
+                        <div class="separator">to</div>
+                        <input type="text" id="exclusionEnd" placeholder="192.168.1.50">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="leaseDuration">Lease Duration (Days):</label>
+                    <select id="leaseDuration" required>
+                        <option value="">Select Lease Duration</option>
+                        <option value="1">1 Day</option>
+                        <option value="3">3 Days</option>
+                        <option value="7">7 Days (1 Week)</option>
+                        <option value="30">30 Days (1 Month)</option>
+                        <option value="90">90 Days (3 Months)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="gateway">Gateway Address:</label>
+                    <input type="text" id="gateway" placeholder="192.168.1.1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="dnsServer">DNS Server Address:</label>
+                    <input type="text" id="dnsServer" placeholder="8.8.8.8 or 192.168.1.1" required>
+                </div>
+
+                <button class="generate-btn" onclick="generatePowerShellCommands()">
+                    Generate PowerShell Commands
+                </button>
+
+                <div class="warning">
+                    <strong>Note:</strong> Please ensure all IP addresses are valid and within your network range. Run these commands on a Windows Server with appropriate administrative privileges.
+                </div>
+            </div>
+
+            <div class="output-section">
+                <button class="copy-btn" onclick="copyToClipboard()">Copy Commands</button>
+                <h3>Generated PowerShell Commands</h3>
+                <div class="powershell-output" id="output">
+# Click "Generate PowerShell Commands" to see the commands here
+# Make sure to fill in all required fields first
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function validateIP(ip) {
+            const regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
+            if (!regex.test(ip)) return false;
+            
+            const parts = ip.split('.');
+            for (let part of parts) {
+                if (parseInt(part) > 255 || parseInt(part) < 0) return false;
+            }
+            return true;
+        }
+
+        function generatePowerShellCommands() {
+            // Get all form values
+            const scopeName = document.getElementById('scopeName').value.trim();
+            const startIP = document.getElementById('startIP').value.trim();
+            const endIP = document.getElementById('endIP').value.trim();
+            const subnetMask = document.getElementById('subnetMask').value;
+            const exclusionStart = document.getElementById('exclusionStart').value.trim();
+            const exclusionEnd = document.getElementById('exclusionEnd').value.trim();
+            const leaseDuration = document.getElementById('leaseDuration').value;
+            const gateway = document.getElementById('gateway').value.trim();
+            const dnsServer = document.getElementById('dnsServer').value.trim();
+
+            // Validate required fields
+            if (!scopeName || !startIP || !endIP || !subnetMask || !leaseDuration || !gateway || !dnsServer) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+
+            // Validate IP addresses
+            if (!validateIP(startIP) || !validateIP(endIP) || !validateIP(gateway) || !validateIP(dnsServer)) {
+                alert('Please enter valid IP addresses.');
+                return;
+            }
+
+            if (exclusionStart && !validateIP(exclusionStart)) {
+                alert('Please enter a valid exclusion start IP address.');
+                return;
+            }
+
+            if (exclusionEnd && !validateIP(exclusionEnd)) {
+                alert('Please enter a valid exclusion end IP address.');
+                return;
+            }
+
+            // Calculate network ID from start IP and subnet mask
+            const networkId = calculateNetworkId(startIP, subnetMask);
+
+            // Generate PowerShell commands
+            let commands = `# DHCP Server Configuration Commands
+# Generated by College of DuPage CIT Department - DHCP PowerShell Configuration Tool
+# Created by: Tony Chen
+# Generated on: ${new Date().toLocaleString()}
+
+# ===============================================
+# STEP 1: Install DHCP Server Role
+# ===============================================
+Write-Host "Installing DHCP Server Role..." -ForegroundColor Green
+Install-WindowsFeature -Name DHCP -IncludeManagementTools
+
+# ===============================================
+# STEP 2: Authorize DHCP Server
+# ===============================================
+Write-Host "Authorizing DHCP Server..." -ForegroundColor Green
+Add-DhcpServerInDC -DnsName $env:COMPUTERNAME -IPAddress (Get-NetIPAddress -AddressFamily IPv4 | Where-Object {$_.PrefixOrigin -eq 'Manual'}).IPAddress
+
+# ===============================================
+# STEP 3: Create DHCP Scope
+# ===============================================
+Write-Host "Creating DHCP Scope: ${scopeName}..." -ForegroundColor Green
+Add-DhcpServerv4Scope -Name "${scopeName}" \\
+    -StartRange ${startIP} \\
+    -EndRange ${endIP} \\
+    -SubnetMask ${subnetMask} \\
+    -LeaseDuration ${leaseDuration}.00:00:00 \\
+    -State Active
+
+# ===============================================
+# STEP 4: Configure Scope Options
+# ===============================================
+Write-Host "Configuring DHCP Scope Options..." -ForegroundColor Green
+
+# Set Default Gateway (Option 003)
+Set-DhcpServerv4OptionValue -ScopeId ${networkId} \\
+    -OptionId 3 \\
+    -Value ${gateway}
+
+# Set DNS Server (Option 006)
+Set-DhcpServerv4OptionValue -ScopeId ${networkId} \\
+    -OptionId 6 \\
+    -Value ${dnsServer}`;
+
+            // Add exclusion range if provided
+            if (exclusionStart && exclusionEnd) {
+                commands += `
+
+# ===============================================
+# STEP 5: Configure Exclusion Range
+# ===============================================
+Write-Host "Adding IP Exclusion Range..." -ForegroundColor Green
+Add-DhcpServerv4ExclusionRange -ScopeId ${networkId} \\
+    -StartRange ${exclusionStart} \\
+    -EndRange ${exclusionEnd}`;
+            }
+
+            // Add final commands
+            commands += `
+
+# ===============================================
+# STEP 6: Commit DHCP Configuration
+# ===============================================
+Write-Host "Committing DHCP Configuration..." -ForegroundColor Green
+
+# Restart DHCP Service to apply changes
+Restart-Service -Name DHCPServer -Force
+
+# Verify DHCP Configuration
+Write-Host "Verifying DHCP Configuration..." -ForegroundColor Yellow
+Get-DhcpServerv4Scope
+Get-DhcpServerv4OptionValue -ScopeId ${networkId}
+
+# ===============================================
+# CONFIGURATION SUMMARY
+# ===============================================
+Write-Host "=== DHCP Configuration Summary ===" -ForegroundColor Cyan
+Write-Host "Scope Name: ${scopeName}" -ForegroundColor White
+Write-Host "Network ID: ${networkId}" -ForegroundColor White
+Write-Host "IP Range: ${startIP} - ${endIP}" -ForegroundColor White
+Write-Host "Subnet Mask: ${subnetMask}" -ForegroundColor White`;
+
+            if (exclusionStart && exclusionEnd) {
+                commands += `
+Write-Host "Exclusion Range: ${exclusionStart} - ${exclusionEnd}" -ForegroundColor White`;
+            }
+
+            commands += `
+Write-Host "Lease Duration: ${leaseDuration} days" -ForegroundColor White
+Write-Host "Gateway: ${gateway}" -ForegroundColor White
+Write-Host "DNS Server: ${dnsServer}" -ForegroundColor White
+Write-Host "=== Configuration Complete ===" -ForegroundColor Green
+
+# Note: Ensure this server is authorized in Active Directory if in a domain environment
+# Run 'netsh dhcp show server' to verify server authorization status`;
+
+            // Display commands in output area
+            document.getElementById('output').textContent = commands;
+        }
+
+        function calculateNetworkId(ip, subnetMask) {
+            const ipParts = ip.split('.').map(x => parseInt(x));
+            const maskParts = subnetMask.split('.').map(x => parseInt(x));
+            
+            const networkParts = [];
+            for (let i = 0; i < 4; i++) {
+                networkParts.push(ipParts[i] & maskParts[i]);
+            }
+            
+            return networkParts.join('.');
+        }
+
+        function copyToClipboard() {
+            const output = document.getElementById('output');
+            const text = output.textContent;
+            
+            if (!text || text.includes('Click "Generate PowerShell Commands"')) {
+                alert('Please generate PowerShell commands first.');
+                return;
+            }
+
+            navigator.clipboard.writeText(text).then(function() {
+                const btn = document.querySelector('.copy-btn');
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                btn.style.background = '#28a745';
+                
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '#007bff';
+                }, 2000);
+            }).catch(function(err) {
+                alert('Failed to copy to clipboard. Please select and copy manually.');
+                console.error('Could not copy text: ', err);
+            });
+        }
+
+        // Auto-generate commands when user finishes typing (with debounce)
+        let timeout;
+        function setupAutoGenerate() {
+            const inputs = document.querySelectorAll('input, select');
+            inputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => {
+                        const allFilled = Array.from(document.querySelectorAll('input[required], select[required]'))
+                            .every(el => el.value.trim());
+                        if (allFilled) {
+                            generatePowerShellCommands();
+                        }
+                    }, 1000);
+                });
+            });
+        }
+
+        // Initialize auto-generate functionality
+        setupAutoGenerate();
+    </script>
+</body>
+</html>
